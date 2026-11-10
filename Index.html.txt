@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quản lý trả góp PRO</title>
+<style>
+body { font-family: Arial; background:#f2f2f2; padding:15px; }
+h2 { text-align:center; margin-bottom:20px; }
+input, button { width:100%; padding:10px; margin:6px 0; }
+button { background:#007bff; color:white; border:none; border-radius:5px; font-weight:bold; }
+.card { background:#fff; padding:15px; margin-bottom:15px; border-radius:8px; }
+#danhSachHopDong div { padding:8px; margin:4px 0; border-radius:5px; background:#e8e8e8; }
+</style>
+</head>
+<body>
+<h2>📊 Quản lý trả góp PRO</h2>
+
+<div class="card">
+  <h3>➕ Thêm khách hàng & hợp đồng</h3>
+  <input id="ten" placeholder="Tên khách">
+  <input id="tien" type="number" placeholder="Số tiền">
+  <input id="lai" type="number" placeholder="Lãi suất % / tháng">
+  <input id="ngay" type="date">
+  <input id="chuKy" type="number" placeholder="Chu kỳ thu (tháng)">
+  <button onclick="themHopDong()">Lưu hợp đồng</button>
+</div>
+
+<div class="card">
+  <h3>📋 Danh sách hợp đồng</h3>
+  <div id="danhSachHopDong"></div>
+</div>
+
+<div class="card">
+  <h3>💰 Tổng hợp dòng tiền</h3>
+  <div id="tongThu">Gốc: 0, Lãi: 0</div>
+</div>
+
+<script>
+let ds = [];
+
+function themHopDong(){
+  const ten=document.getElementById("ten").value;
+  const tien=parseFloat(document.getElementById("tien").value);
+  const lai=parseFloat(document.getElementById("lai").value);
+  const ngay=document.getElementById("ngay").value;
+  const chuKy=parseInt(document.getElementById("chuKy").value);
+  if(!ten||!tien||!lai||!ngay||!chuKy){alert("Nhập đủ thông tin"); return;}
+  ds.push({ten,tien,lai,ngay,chuKy,daThu:false});
+  hienThi();
+}
+
+function hienThi(){
+  const div=document.getElementById("danhSachHopDong");
+  div.innerHTML="";
+  ds.forEach((h,i)=>{
+    const today=new Date().toISOString().slice(0,10);
+    const overdue=!h.daThu && h.ngay < today;
+    div.innerHTML+=`<div style="background:${overdue?'#ffcccc':'#e8e8e8'}">
+      <b>${h.ten}</b> | 💰${h.tien} | 📈${h.lai}% | 📅${h.ngay}
+      <button onclick="daThu(${i})">Đã thu</button>
+    </div>`;
+  });
+  tinhTongThu();
+}
+
+function daThu(i){ds[i].daThu=true;hienThi();}
+
+function tinhTongThu(){
+  let tongGoc=0,tongLai=0;
+  ds.forEach(h=>{
+    if(h.daThu){
+      tongGoc+=h.tien;
+      tongLai+=h.tien*h.lai/100;
+    }
+  });
+  document.getElementById("tongThu").innerText=`Gốc: ${tongGoc}, Lãi: ${tongLai}`;
+}
+
+setInterval(()=>{
+  const today=new Date().toISOString().slice(0,10);
+  ds.forEach(h=>{
+    if(!h.daThu && h.ngay===today){alert("🔔 Đến hạn thu tiền: "+h.ten);}
+  });
+},60000);
+
+hienThi();
+</script>
+</body>
+</html>
